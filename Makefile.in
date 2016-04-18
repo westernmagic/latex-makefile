@@ -134,6 +134,9 @@ PERL		?= perl
 PYTHON		?= python
 RST2LATEX	?= rst2latex.py
 LHS2TEX		?= lhs2tex
+R             ?= R
+RSCRIPT               ?= Rscript
+SWEAVE                ?= $(R) CMD Sweave
 # == EPS Generation ==
 CONVERT		?= convert	# ImageMagick
 DOT		?= dot		# GraphViz
@@ -553,6 +556,7 @@ endif
 
 # Files of interest
 all_files.tex		?= $(wildcard *.tex)
+all_files.Rnw         	?= $(wildcard *.Rnw)
 all_files.tex.sh	?= $(wildcard *.tex.sh)
 all_files.tex.pl	?= $(wildcard *.tex.pl)
 all_files.tex.py	?= $(wildcard *.tex.py)
@@ -603,6 +607,7 @@ filter-default		= \
 
 # Top level sources that can be built even when they are not by default
 files.tex	:= $(call filter-buildable,tex)
+files.Rnw     	:= $(call filter-buildable,Rnw)
 files.tex.sh	:= $(call filter-buildable,tex.sh)
 files.tex.pl	:= $(call filter-buildable,tex.pl)
 files.tex.py	:= $(call filter-buildable,tex.py)
@@ -634,6 +639,7 @@ files.eps	:= $(call filter-buildable,eps)
 
 # Top level sources that are built by default targets
 default_files.tex	:= $(call filter-default,tex)
+default_files.Rnw     	:= $(call filter-default,Rnw)
 default_files.tex.sh	:= $(call filter-default,tex.sh)
 default_files.tex.pl	:= $(call filter-default,tex.pl)
 default_files.tex.py	:= $(call filter-default,tex.py)
@@ -658,17 +664,17 @@ concat-files	= $(foreach s,$1,$($(if $2,$2_,)files.$s))
 
 # Useful file groupings
 all_files_source	:= $(call concat-files,tex,all)
-all_files_source_gen	:= $(call concat-files,rst rhs,all)
+all_files_source_gen	:= $(call concat-files,rst rhs Rnw,all)
 all_files_scripts	:= $(call concat-files,tex.sh tex.pl tex.py,all)
 
 .PHONY: $(all_files_scripts)
 
 default_files_source		:= $(call concat-files,tex,default)
-default_files_source_gen	:= $(call concat-files,rhs lhs,default)
+default_files_source_gen	:= $(call concat-files,rhs lhs Rnw,default)
 default_files_scripts		:= $(call concat-files,tex.sh tex.pl tex.py,default)
 
 files_source		:= $(call concat-files,tex)
-files_source_gen	:= $(call concat-files,rst lhs)
+files_source_gen	:= $(call concat-files,rst lhs Rnw)
 files_scripts		:= $(call concat-files,tex.sh tex.pl tex.py)
 
 # Utility function for obtaining stems
@@ -677,6 +683,7 @@ get-stems	= $(sort $($(if $2,$2_,)files.$1:%.$1=%))
 
 # List of all stems (including ._include_ and ._nobuild_ file stems)
 all_stems.tex		:= $(call get-stems,tex,all)
+all_stems.Rnw		:= $(call get-stems,Rnw,all)
 all_stems.tex.sh	:= $(call get-stems,tex.sh,all)
 all_stems.tex.pl	:= $(call get-stems,tex.pl,all)
 all_stems.tex.py	:= $(call get-stems,tex.py,all)
@@ -697,6 +704,7 @@ all_stems.eps		:= $(call get-stems,eps,all)
 
 # List of all default stems (all default PDF targets):
 default_stems.tex		:= $(call get-stems,tex,default)
+default_stems.Rnw             	:= $(call get-stems,Rnw,default)
 default_stems.tex.sh		:= $(call get-stems,tex.sh,default)
 default_stems.tex.pl		:= $(call get-stems,tex.pl,default)
 default_stems.tex.py		:= $(call get-stems,tex.py,default)
@@ -717,6 +725,7 @@ default_stems.eps		:= $(call get-stems,eps,default)
 
 # List of all stems (all possible bare PDF targets created here):
 stems.tex		:= $(call get-stems,tex)
+stems.Rnw             	:= $(call get-stems,Rnw)
 stems.tex.sh		:= $(call get-stems,tex.sh)
 stems.tex.pl		:= $(call get-stems,tex.pl)
 stems.tex.py		:= $(call get-stems,tex.py)
@@ -765,7 +774,7 @@ graphic_target_extensions	:= pdf png jpg jpeg mps tif
 endif
 
 all_stems_source	:= $(call concat-stems,tex,all)
-all_stems_source_gen	:= $(call concat-stems,rst lhs,all)
+all_stems_source_gen	:= $(call concat-stems,rst lhs Rnw,all)
 all_stems_script	:= $(call concat-stems,tex.sh tex.pl tex.py,all)
 all_stems_graphic	:= $(call concat-stems,$(graphic_source_extensions),all)
 all_stems_ss		:= $(sort $(all_stems_source) $(all_stems_source_gen) $(all_stems_script))
@@ -773,14 +782,14 @@ all_stems_sg		:= $(sort $(all_stems_script) $(all_stems_source_gen))
 all_stems_ssg		:= $(sort $(all_stems_ss))
 
 default_stems_source		:= $(call concat-stems,tex,default)
-default_stems_source_gen	:= $(call concat-stems,rst lhs,default)
+default_stems_source_gen	:= $(call concat-stems,rst lhs Rnw,default)
 default_stems_script		:= $(call concat-stems,tex.sh tex.pl tex.py,default)
 default_stems_ss	:= $(sort $(default_stems_source) $(default_stems_source_gen) $(default_stems_script))
 default_stems_sg	:= $(sort $(default_stems_script) $(default_stems_source_gen))
 default_stems_ssg	:= $(sort $(default_stems_ss))
 
 stems_source		:= $(call concat-stems,tex)
-stems_source_gen	:= $(call concat-stems,rst lhs)
+stems_source_gen	:= $(call concat-stems,rst lhs Rnw)
 stems_script		:= $(call concat-stems,tex.sh tex.pl tex.py)
 stems_graphic		:= $(call concat-stems,$(graphic_source_extensions))
 stems_gg		:= $(sort $(stems_graphic))
@@ -2056,6 +2065,44 @@ endif
 #
 # Keep the generated .tex files around for debugging if needed.
 .SECONDARY: $(all_tex_targets)
+
+#create dependencies, make output and .tex from Rnw documents
+# begin by setting up the R script (there's probably a better way to do this)
+# run the R script
+# Filter the log files (.tex.make) to produce .fls documents
+# so that the dependency generation sed scripts correctly identify
+# new dependencies (generated graphics, tex files)
+# and reverse dependencies (Rnw and R files)
+# Specifically, this enables the generated files to be 'cleaned'
+#
+# Then explicitly add the dependencies to the .tex.d file
+#
+# TODO: colorize R log
+# TODO: generate dependencies file
+%.tex.make %.tex:: %.Rnw
+	$(QUIET)$(RSCRIPT) \
+		-e 'library("knitr")' \
+		-e 'logfile <- file( "$(shell basename $*).tex.make" , open = "wt" )' \
+		-e 'sink( logfile , type = "message" )' \
+		-e 'render_latex()' \
+		-e 'real_plot = knit_hooks$$get( "plot" )' \
+		-e 'knit_hooks$$set(' \
+		-e '  plot = function( x , options ) {' \
+		-e '    message( "output file: " , paste( x[1] , x[2] , sep = "." ) )' \
+		-e '    real_plot( x , options )' \
+		-e '  } ,' \
+		-e '  file.chunk = function( before , options , envir ) {' \
+		-e '    if( !before ) {' \
+		-e '      message( "processing file: " , options[["file.chunk"]] )' \
+		-e '      read_chunk( options[["file.chunk"]] )' \
+		-e '    }' \
+		-e '  }' \
+		-e ')' \
+		-e 'knit( "$(shell basename $<)" )'
+	$(SED) -n -e 's/output file: \(.*\)/OUTPUT \1/ p' -e 's/processing file: \(.*\)/INPUT \1/ p'  '$*.tex.make' > $*.tex.fls
+	# $(QUIET)>$*.tex.d
+	# $(QUIET)$(ECHO) `$(SED) -n -e 's/output file: \(.*\)/\1/ p' $*.tex.make` : $*.tex.make >>  $*.tex.d
+	# $(QUIET)$(ECHO) $*.tex.make : `$(SED) -n -e 's/processing file: \(.*\)/\1/ p'  $*.tex.make` >> $*.tex.d
 
 %.tex::	%.tex.sh
 	$(QUIET)$(call run-script,$(SHELL),$<,$@)
