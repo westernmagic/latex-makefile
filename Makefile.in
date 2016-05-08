@@ -29,9 +29,6 @@ BUILD_STRATEGY		?= pdflatex
 # This can be used to pass extra options to latex.
 LATEX_OPTS		?=
 #
-# use biber and biblatex instead of bibtex
-use_biblatex		?= 0
-#
 # Sets LC_ALL=C, by default, so that the locale-aware tools, like sort, be
 # # immune to changes to the locale in the user environment.
 export LC_ALL		?= C
@@ -1990,15 +1987,15 @@ endif
 %.bbl: %.auxbbl.make
 	$(QUIET)\
 	$(if $(filter %.bib,$^),\
-		$(if $(use_biblatex), \
+		if $(call test-exists,$*.bcf); then \
 			$(call echo-build,$(filter %.bib,$?) $*.bcf,$@); \
 			$(call set-run-reason,dependencies of $@ changed); \
 			$(call run-biber,$*); \
-		, \
+		else \
 			$(call echo-build,$(filter %.bib,$?) $*.aux,$@); \
 			$(call set-run-reason,dependencies of $@ changed); \
 			$(call run-bibtex,$*); \
-		) \
+		fi; \
 		$(TOUCH) $@.cookie; \
 	) \
 	if $(EGREP) -q 'bibstyle.(apacite|apacann|chcagoa|[^}]*annot)' '$*.aux'; then \
@@ -2006,13 +2003,13 @@ endif
 		$(call run-latex,$*); \
 		$(CP) '$*.log' '$*.$(RESTARTS)-annotated.log'; \
 	$(if $(filter %.bib,$^),\
-		$(if $(use_biblatex), \
+		if $(call test-exists,$*.bcf); then \
 			$(call echo-build,** annotated extra bibtex ** $(filter %.bib,$?) $*.bcf,$@); \
 			$(call run-biber,$*); \
-		, \
+		else \
 			$(call echo-build,** annotated extra bibtex ** $(filter %.bib,$?) $*.aux,$@); \
 			$(call run-bibtex,$*); \
-		) \
+		fi; \
 		$(TOUCH) $@.cookie; \
 	) \
 		$(call echo-build,** annotated extra latex **,output ignored,$(RESTARTS)-2); \
@@ -2316,11 +2313,8 @@ endif
 	$(ECHO) ".SECONDEXPANSION:" >> $*.d; \
 	$(call get-graphics,$*) >> $*.d; \
 	$(call get-log-index,$*,$(addprefix $*.,aux aux.make)) >> $*.d; \
-	$(if $(use_biblatex),\
-		$(call get-biblatex-bibs,$*.bcf,$(addprefix $*.,bbl aux aux.make bcf)) >> $*.d; \
-	, \
-		$(call get-bibs,$*.aux.make,$(addprefix $*.,bbl aux aux.make)) >> $*.d; \
-	) \
+	$(call test-exists,$*.bcf) && $(call get-biblatex-bibs,$*.bcf,$(addprefix $*.,bbl aux aux.make bcf)) >> $*.d; \
+	$(call test-exists,$*.aux.make) && $(call get-bibs,$*.aux.make,$(addprefix $*.,bbl aux aux.make)) >> $*.d; \
 	$(EGREP) -q "# MISSING stem" $*.d && $(SLEEP) 1 && $(RM) $*.pdf; \
 	$(EGREP) -q "# MISSING format" $*.d && $(RM) $*.pdf; \
 	$(call move-if-exists,$*.$(build_target_extension),$*.$(build_target_extension).1st.make); \
