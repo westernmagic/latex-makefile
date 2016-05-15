@@ -969,6 +969,18 @@ define get-format
 ##)
 endef
 
+define get-R-inputs
+$(SED) -n \
+-e 's!processing file: \(.*\)!$(2) : \1! p' \
+'$1' | $(SORT) | $(UNIQ)
+endef
+
+define get-R-outputs
+$(SED) -n \
+-e 's/output file: \(.*\)/\1/ p' \
+'$1' | $(SORT) | $(UNIQ)
+endef
+
 # $(call get-missing-inputs,<log file>,<target files>)
 define get-missing-inputs
 (##include_sed("$(SED)", "get-missing-inputs.sed", "'$1'", target_files="$2")
@@ -1988,11 +2000,11 @@ endif
 	$(QUIET)\
 	$(if $(filter %.bib,$^),\
 		if $(call test-exists,$*.bcf); then \
-			$(call echo-build,$(filter %.bib,$?) $*.bcf,$@); \
+			$(call echo-build,$(strip $(filter %.bib,$?) $*.bcf),$@); \
 			$(call set-run-reason,dependencies of $@ changed); \
 			$(call run-biber,$*); \
 		else \
-			$(call echo-build,$(filter %.bib,$?) $*.aux,$@); \
+			$(call echo-build,$(strip $(filter %.bib,$?) $*.aux),$@); \
 			$(call set-run-reason,dependencies of $@ changed); \
 			$(call run-bibtex,$*); \
 		fi; \
@@ -2063,7 +2075,7 @@ endif
 # Keep the generated .tex files around for debugging if needed.
 .SECONDARY: $(all_tex_targets)
 
-#create dependencies, make output and .tex from Rnw documents
+# create dependencies, make output and .tex from Rnw documents
 # begin by setting up the R script (there's probably a better way to do this)
 # run the R script
 # Filter the log files (.tex.make) to produce .fls documents
@@ -2075,17 +2087,18 @@ endif
 # Then explicitly add the dependencies to the .tex.d file
 #
 # TODO: colorize R log
-# TODO: generate dependencies file
 %.tex.make %.tex:: %.Rnw
+	$(QUIET)$(call echo-build,$*.Rnw,$@)
 	$(QUIET)$(RSCRIPT) \
 		-e 'library("knitr")' \
 		-e 'logfile <- file( "$(shell basename $*).tex.make" , open = "wt" )' \
 		-e 'sink( logfile , type = "message" )' \
 		-e 'render_latex()' \
+		-e 'opts_knit$$set( progress = FALSE )' \
 		-e 'real_plot = knit_hooks$$get( "plot" )' \
 		-e 'knit_hooks$$set(' \
 		-e '  plot = function( x , options ) {' \
-		-e '    message( "output file: " , paste( x[1] , x[2] , sep = "." ) )' \
+		-e '    message( "output file: " , x )' \
 		-e '    real_plot( x , options )' \
 		-e '  } ,' \
 		-e '  file.chunk = function( before , options , envir ) {' \
@@ -2095,11 +2108,17 @@ endif
 		-e '    }' \
 		-e '  }' \
 		-e ')' \
-		-e 'knit( "$(shell basename $<)" )'
-	$(SED) -n -e 's/output file: \(.*\)/OUTPUT \1/ p' -e 's/processing file: \(.*\)/INPUT \1/ p'  '$*.tex.make' > $*.tex.fls
-	# $(QUIET)>$*.tex.d
-	# $(QUIET)$(ECHO) `$(SED) -n -e 's/output file: \(.*\)/\1/ p' $*.tex.make` : $*.tex.make >>  $*.tex.d
-	# $(QUIET)$(ECHO) $*.tex.make : `$(SED) -n -e 's/processing file: \(.*\)/\1/ p'  $*.tex.make` >> $*.tex.d
+		-e 'opts_hooks$$set( ' \
+		-e '  child = function(options) {' \
+		-e '    lapply(options$$child , function(x) {message( "processing file: " , x)} )' \
+		-e '    return(options)' \
+		-e '  } ,' \
+		-e '  cache = function(options) {' \
+		-e '    options$$cache.path <- paste("cache" , current_input() , "" , sep = "/")' \
+		-e '    return(options)' \
+		-e '  }' \
+		-e ')' \
+		-e 'knit( "$(shell basename $<)" )' > /dev/null
 
 %.tex::	%.tex.sh
 	$(QUIET)$(call run-script,$(SHELL),$<,$@)
@@ -2309,6 +2328,7 @@ endif
 	$(ECHO) ".PHONY: $*._graphics" >> $*.d; \
 	$(call get-inputs,$*.fls,$(addprefix $*.,aux aux.make d $(build_target_extension))) >> $*.d; \
 	$(call get-format,$<,$(addprefix $*.,fls aux aux.make d $(build_target_extension) $(build_target_extension).1st.make)) >> $*.d; \
+	$(call test-exists,$*.tex.make) && $(call get-R-inputs,$*.tex.make,$(strip $*.tex.make $(shell $(call get-R-outputs,$*.tex.make)))) >> $*.d ; \
 	$(call get-missing-inputs,$*.log,$(addprefix $*.,aux aux.make d $(build_target_extension))) >> $*.d; \
 	$(ECHO) ".SECONDEXPANSION:" >> $*.d; \
 	$(call get-graphics,$*) >> $*.d; \
