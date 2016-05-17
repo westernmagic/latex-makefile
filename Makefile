@@ -1664,6 +1664,36 @@ $(SED) -n \
 '$1' | $(SORT) | $(UNIQ)
 endef
 
+define get-R-dependencies
+$(SED) -n \
+`# for each input file` \
+-e '/processing file: .*/ {' \
+`# fetch the file name` \
+-e '    s/processing file: \(.*\)/\1/' \
+`# save it in the hold buffer` \
+-e '    H' \
+`# exchange it so that we can edit it` \
+-e '    x' \
+`# replace newlines with spaces` \
+-e '    s/\(.\)\n/\1 /g' \
+`# except if its an empty line, in which case delete it` \
+-e '    s/^\n//' \
+`# exchange back` \
+-e  '   x' \
+-e '}' \
+`# for each output file` \
+-e '/output file: .*/ {' \
+`# format file name as a make target` \
+-e '    s/output file: \(.*\)/\1 : /' \
+`# get the hold buffer (= inputs = dependecies)` \
+-e '    G' \
+`# remove any newlines` \
+-e '    s/\n//' \
+`# print the Makefile rule` \
+-e '    p' \
+'$1'
+endef
+
 define sed-paragraphs
 `# This uses a neat trick from the Sed & Awk Book from O'Reilly:` \
 `# Ensure that the last line looks like the end of a paragraph; if it isn't` \
