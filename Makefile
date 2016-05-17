@@ -3419,6 +3419,13 @@ endif
 		-e ')' \
 		-e 'knit( "$(shell basename $<)" )' > /dev/null
 
+%.R: %.Rnw
+	$(QUIET)$(call echo-build,$*.Rnw,$@)
+	$(QUIET)$(RSCRIPT) \
+		-e 'library("knitr")' \
+		-e 'opts_knit$$set( progress = FALSE )' \
+		-e 'purl("$(shell basename $<)")' > /dev/null
+
 %.tex:: %.tex.sh
 	$(QUIET)$(call run-script,$(SHELL),$<,$@)
 
