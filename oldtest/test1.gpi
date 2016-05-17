@@ -1,7 +1,0 @@
-##FONTSIZE=15
-#load 'global.gpi'
-plot x**2 lw 5.0, \
-    'test1.dat', \
-    '-'
-1,6.39
-e

@@ -1,9 +1,0 @@
-<E>/usr/local/texlive/2013/texmf-dist/tex/latex/hyperref/hyperref.sty:4319: Packag
-e hyperref Error: Wrong DVI mode driver option `dvips',
-(hyperref)                because XeTeX is running.<R>
-
-<W>Package hyperref Warning: Rerun to get /PageLabels entry.<R>
-
-<S>Success!<R>  Wrote <P>1<R> page to <S>test.pdf<R>
-
-
