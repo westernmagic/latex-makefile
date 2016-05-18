@@ -1625,8 +1625,8 @@ $(SED) \
 -e '/\.dot_t$$/b addtargets' \
 -e 'd' \
 `# Here we add the input targets.  This involves calling path-norm, which on` \
-`# cygwin systems will change the path to not contain spaces and to be \
-`# unix-style instead of C:\Windows style. \
+`# cygwin systems will change the path to not contain spaces and to be` \
+`# unix-style instead of C:\Windows style.` \
 -e ':addtargets' \
 -e 's!.*!$2: $$(call path-norm,&)!' \
 '$1' | $(SORT) | $(UNIQ)
@@ -1773,7 +1773,7 @@ $(sed-paragraphs) \
 -e '  s!^.*!$2: $$(call path-norm,&)!' \
 -e '  p' \
 -e '}' \
-`# Anything else is not wanted`
+`# Anything else is not wanted` \
 -e 'd' \
 '$1' | $(SORT) | $(UNIQ)
 endef
@@ -2288,7 +2288,7 @@ $(sed-paragraphs) \
 -e 's/^[^[:cntrl:]:]*:[[:digit:]]\{1,\}:/!!! &/' \
 `# Note that we preserve all of the stuff before the !!! because it might` \
 `# contain useful errors that we have to find below.  Of particular interest is` \
-`# the File `something.cls' not found case.` \
+`# the File \`something.cls' not found case.` \
 `# Note that any time we need to negate \n, we use [^[:cntrl:]] instead, since` \
 `# [^\n] doesn't work in POSIX sed.` \
 -e 's/^\(.*\n\)\([^[:cntrl:]:]*:[[:digit:]]\{1,\}: .*\)/\1!!! \2/' \
@@ -2301,7 +2301,7 @@ $(sed-paragraphs) \
 -e '  b needonemore' \
 -e '}' \
 `# Parse things that look like this (triple paragraphs)` \
-`# ! LaTeX Error: File `missing.cls' not found.` \
+`# ! LaTeX Error: File \`missing.cls' not found.` \
 `#` \
 `# Type X to quit or <RETURN> to proceed,` \
 `# or enter new name. (Default extension: cls)` \
@@ -2398,8 +2398,8 @@ $(sed-paragraphs) \
 `#` \
 `# The control sequence at the end of the top line` \
 `# of your error message was never \def'ed. If you have` \
-`# misspelled it (e.g., `\hobx'), type `I' and the correct` \
-`# spelling (e.g., `I\hbox'). Otherwise just continue,` \
+`# misspelled it (e.g., \`\hobx'), type I' and the correct` \
+`# spelling (e.g., \`I\hbox'). Otherwise just continue,` \
 `# and I'll forget about whatever was undefined.` \
 -e '/.*\(!!! .*Undefined control sequence\)[^[:cntrl:]]*\(.*\)/{' \
 -e '  s//\1: \2/' \
@@ -2574,7 +2574,7 @@ define ps2pdf
 endef
 
 # Colorize LaTeX output.
-color_tex   := \
+define color_tex
 $(SED) \
 `# This uses a neat trick from the Sed & Awk Book from O'Reilly:` \
 `# 1) If a line has a single ending paren, delete it to make a blank line (so` \
@@ -2634,9 +2634,10 @@ $(SED) \
 -e '  :end' \
 -e '  G' \
 -e '}'
+endef
 
 # Colorize BibTeX output.
-color_bib   := \
+define color_bib
 $(SED) \
 -e 's/^Warning--.*/$(C_WARNING)&$(C_RESET)/' \
 -e 't' \
@@ -2654,9 +2655,10 @@ $(SED) \
 -e '}' \
 -e '/(.*error.*)/s//$(C_ERROR)&$(C_RESET)/' \
 -e 'd'
+endef
 
 # Colorize Biber output.
-color_biber := \
+define color_biber
 $(SED) \
 `# color info` \
 -e 's/^INFO - .*/$(C_INFO)&$(C_RESET)/' \
@@ -2666,6 +2668,7 @@ $(SED) \
 -e 's/^ERROR - .*/$(C_ERROR)&$(C_RESET)/' \
 `# color warning` \
 -e 's/^Warning--.*/$(C_WARNING)&$(C_RESET)/'
+endef
 
 # Make beamer output big enough to print on a full page.  Landscape doesn't
 # seem to work correctly.
@@ -2739,8 +2742,8 @@ endef
 define run-script
 $(call test-not-exists,$2.cookie) && $(ECHO) "restarts=$(RESTARTS)" \
 	> $2.cookie && $(ECHO) "level=$(MAKELEVEL)" >> $2.cookie; \
-restarts=`$(SED) -n -e 's/^restarts=//p' $2.cookie`; \
-level=`$(SED) -n -e 's/^level=//p' $2.cookie`; \
+restarts=$$($(SED) -n -e 's/^restarts=//p' $2.cookie); \
+level=$$($(SED) -n -e 's/^level=//p' $2.cookie); \
 if $(EXPR) $(MAKELEVEL) '<=' $$level '&' $(RESTARTS) '<=' $$restarts >/dev/null; then \
 	$(call echo-build,$2,$3,$(RESTARTS)-$(MAKELEVEL)); \
 	$1 '$2' '$3'; \
@@ -3224,7 +3227,7 @@ ifeq "$(strip $(BUILD_STRATEGY))" "latex"
 endif
 %.$(build_target_extension): %.bbl %.aux %.$(build_target_extension).1st.make
 	$(QUIET)\
-	fatal=`$(call colorize-latex-errors,$*.log)`; \
+	fatal=$$($(call colorize-latex-errors,$*.log)); \
 	if [ x"$$fatal" != x"" ]; then \
 		$(ECHO) "$$fatal"; \
 		exit 1; \
@@ -3363,7 +3366,7 @@ endif
 	$(QUIET)$(call echo-build,$<,$@)
 	$(QUIET)\
 	$(call run-latex,$*,-ini "&$(latex_build_program) $*.tex\dump"); \
-	fatal=`$(call colorize-latex-errors,$*.log)`; \
+	fatal=$$($(call colorize-latex-errors,$*.log)); \
 	if [ x"$$fatal" != x"" ]; then \
 		$(ECHO) "$$fatal"; \
 		exit 1; \
@@ -3721,8 +3724,8 @@ _check_programs:
 	case $$p in \
 		=*) $(ECHO); $(ECHO) "$$p";; \
 		*) \
-			n=`$(ECHO) "$$p:$$spaces" | $(SED) -e 's/^\(.\{0,20\}\).*$$/\1/'`; \
-			loc=`$(WHICH) $$p 2>/dev/null`; \
+			n=$$($(ECHO) "$$p:$$spaces" | $(SED) -e 's/^\(.\{0,20\}\).*$$/\1/'); \
+			loc=$$($(WHICH) $$p 2>/dev/null); \
 			if [ x"$$?" = x"0" ]; then \
 				$(ECHO) "$$n$(C_SUCCESS)Found:$(C_RESET) $$loc"; \
 			else \
@@ -3737,7 +3740,7 @@ _check_gpi_files:
 	$(QUIET)$(ECHO) "== Checking all .gpi files for common errors =="; \
 	$(ECHO); \
 	for f in $(files.gpi); do \
-	result=`$(EGREP) '^([^#]*set terminal |set output )' $$f`; \
+	result=$$($(EGREP) '^([^#]*set terminal |set output )' $$f); \
 	$(ECHO) -n "$$f: "; \
 	if [ x"$$result" = x"" ]; then \
 		$(ECHO) "$(C_SUCCESS)Okay$(C_RESET)"; \
