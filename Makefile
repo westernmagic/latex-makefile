@@ -29,7 +29,7 @@
 #    make help
 #
 fileinfo := LaTeX Makefile
-author   := Chris Monson
+author   := "Chris Monson" "Michal Sudwoj"
 version  := 2.2.1-alpha10
 #
 .DEFAULT_GOAL := all
