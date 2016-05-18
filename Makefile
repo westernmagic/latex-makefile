@@ -3668,7 +3668,7 @@ endif
 	$(ECHO) ".PHONY: $*._graphics" >> $*.d; \
 	$(call get-inputs,$*.fls,$(addprefix $*.,aux aux.make d $(build_target_extension))) >> $*.d; \
 	$(call get-format,$<,$(addprefix $*.,fls aux aux.make d $(build_target_extension) $(build_target_extension).1st.make)) >> $*.d; \
-	$(call test-exists,$*.tex.make) && $(call get-R-inputs,$*.tex.make,$(strip $*.tex.make $(shell $(call get-R-outputs,$*.tex.make)))) >> $*.d ; \
+	$(call test-exists,$*.tex.make) && $(call get-R-inputs,$*.tex.make,$(strip $*.tex.make $(shell $(call test-exists,$*.tex.make) && $(call get-R-outputs,$*.tex.make)))) >> $*.d ; \
 	$(call get-missing-inputs,$*.log,$(addprefix $*.,aux aux.make d $(build_target_extension))) >> $*.d; \
 	$(ECHO) ".SECONDEXPANSION:" >> $*.d; \
 	$(call get-graphics,$*) >> $*.d; \
