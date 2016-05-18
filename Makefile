@@ -782,7 +782,6 @@ RST2LATEX       ?= rst2latex.py
 LHS2TEX         ?= lhs2tex
 R               ?= R
 RSCRIPT         ?= Rscript
-SWEAVE          ?= $(R) CMD Sweave
 # == EPS Generation ==
 CONVERT         ?= convert  # ImageMagick
 DOT             ?= dot      # GraphViz
@@ -859,6 +858,8 @@ $(if \
 		fsize FONTSIZE,\
 		font ",FONTSIZE"),\
 	FONTSIZE))
+
+SWEAVE ?= $(R) CMD Sweave
 
 # Directory into which we place "binaries" if it exists.
 # Note that this can be changed on the commandline or in Makefile.ini:
