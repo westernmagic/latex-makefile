@@ -784,18 +784,18 @@ R               ?= R
 RSCRIPT         ?= Rscript
 SWEAVE          ?= $(R) CMD Sweave
 # == EPS Generation ==
-CONVERT         ?= convert	# ImageMagick
-DOT             ?= dot		# GraphViz
-DOT2TEX         ?= dot2tex	# dot2tex - add options (not -o) as needed
-MPOST           ?= mpost	# MetaPost
-FIG2DEV         ?= fig2dev	# XFig
-GNUPLOT         ?= gnuplot	# GNUplot
-INKSCAPE        ?= inkscape	# Inkscape (svg support)
-XMGRACE         ?= xmgrace	# XMgrace
-PNGTOPNM        ?= pngtopnm	# From NetPBM - step 1 for png -> eps
-PPMTOPGM        ?= ppmtopgm	# From NetPBM - (gray) step 2 for png -> eps
-PNMTOPS         ?= pnmtops	# From NetPBM - step 3 for png -> eps
-GUNZIP          ?= gunzip	# GZipped EPS
+CONVERT         ?= convert  # ImageMagick
+DOT             ?= dot      # GraphViz
+DOT2TEX         ?= dot2tex  # dot2tex - add options (not -o) as needed
+MPOST           ?= mpost    # MetaPost
+FIG2DEV         ?= fig2dev  # XFig
+GNUPLOT         ?= gnuplot  # GNUplot
+INKSCAPE        ?= inkscape # Inkscape (svg support)
+XMGRACE         ?= xmgrace  # XMgrace
+PNGTOPNM        ?= pngtopnm # From NetPBM - step 1 for png -> eps
+PPMTOPGM        ?= ppmtopgm # From NetPBM - (gray) step 2 for png -> eps
+PNMTOPS         ?= pnmtops  # From NetPBM - step 3 for png -> eps
+GUNZIP          ?= gunzip   # GZipped EPS
 # == Beamer Enlarged Output ==
 PSNUP           ?= psnup
 # == Viewing Stuff ==
