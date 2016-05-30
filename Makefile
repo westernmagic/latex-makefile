@@ -3423,6 +3423,7 @@ endif
 %.tex.make %.tex:: %.Rnw
 	$(QUIET)$(call echo-build,$*.Rnw,$@)
 	$(QUIET)$(RSCRIPT) \
+		-e 'options(warn = 1)' \
 		-e 'library("knitr")' \
 		-e 'logfile <- file( "$(shell basename $*).tex.make" , open = "wt" )' \
 		-e 'sink( logfile , type = "message" )' \
@@ -3456,6 +3457,7 @@ endif
 %.R: %.Rnw
 	$(QUIET)$(call echo-build,$*.Rnw,$@)
 	$(QUIET)$(RSCRIPT) \
+		-e 'options(warn = 1)' \
 		-e 'library("knitr")' \
 		-e 'opts_knit$$set( progress = FALSE )' \
 		-e 'purl("$(shell basename $<)")' > /dev/null
