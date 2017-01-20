@@ -53,6 +53,8 @@ version  := 2.2.1-alpha10
 BUILD_STRATEGY ?= pdflatex
 # This can be used to pass extra options to latex.
 LATEX_OPTS     ?=
+BIBTEX_OPTS    ?=
+BIBER_OPTS     ?=
 #
 # Sets LC_ALL=C, by default, so that the locale-aware tools, like sort, be
 # # immune to changes to the locale in the user environment.
@@ -2789,12 +2791,12 @@ endef
 # BibTeX invocations
 #
 # $(call run-bibtex,<tex stem>)
-run-bibtex = $(BIBTEX) $1 | $(color_bib); $(call transcript,bibtex,$1)
+run-bibtex = $(BIBTEX) $(BIBTEX_OPTS) $1 | $(color_bib); $(call transcript,bibtex,$1)
 
 # Biber invocations
 #
 # $(call run-biber,<tex stem>)
-run-biber  = $(BIBER) $1 | $(color_biber); $(call transcript,biber,$1)
+run-biber  = $(BIBER) $(BIBER_OPTS) $1 | $(color_biber); $(call transcript,biber,$1)
 
 # $(call convert-eps-to-pdf,<eps file>,<pdf file>,[gray])
 # Note that we don't use the --filter flag because it has trouble with bounding boxes that way.
